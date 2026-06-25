@@ -234,7 +234,7 @@ private extension Locale {
     }
 
     if let region = components[NSLocale.Key.countryCode.rawValue]?.lowercased(),
-       region.count == 2 || region.count == 3
+       isAppleSupportRegionCode(region)
     {
       return "\(language)-\(region)"
     }
@@ -256,6 +256,12 @@ private extension Locale {
     }
 
     return nil
+  }
+
+  static func isAppleSupportRegionCode(_ region: String) -> Bool {
+    region.count == 2 && region.unicodeScalars.allSatisfy {
+      CharacterSet.lowercaseLetters.contains($0)
+    }
   }
 
   // Language-only fallbacks pick one common Apple Support region.
