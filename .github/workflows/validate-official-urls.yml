@@ -1,0 +1,36 @@
+name: Validate Official URLs
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/validate-official-urls.yml"
+      - "Scripts/validate-official-urls.sh"
+      - "Sources/WidgetGuideView/WidgetGuideView.swift"
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/workflows/validate-official-urls.yml"
+      - "Scripts/validate-official-urls.sh"
+      - "Sources/WidgetGuideView/WidgetGuideView.swift"
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-official-urls-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-official-urls:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Apple official URLs
+        run: |
+          chmod +x ./Scripts/validate-official-urls.sh
+          ./Scripts/validate-official-urls.sh
