@@ -174,17 +174,17 @@ public struct WidgetGuideView: View {
 }
 
 /// A SwiftUI wrapper around `SFSafariViewController`.
-public struct SafariView: UIViewControllerRepresentable {
+struct SafariView: UIViewControllerRepresentable {
   /// The URL to load.
-  public let url: URL
+  let url: URL
 
   /// Creates a Safari view for the provided URL.
-  public init(url: URL) {
+  init(url: URL) {
     self.url = url
   }
 
   /// Creates the underlying Safari view controller.
-  public func makeUIViewController(context: Context) -> SFSafariViewController {
+  func makeUIViewController(context: Context) -> SFSafariViewController {
     let configuration = SFSafariViewController.Configuration()
     configuration.entersReaderIfAvailable = false
     configuration.barCollapsingEnabled = true
@@ -201,7 +201,7 @@ public struct SafariView: UIViewControllerRepresentable {
   ///
   /// `SFSafariViewController` does not expose an API for replacing the loaded URL.
   /// Recreate the SwiftUI view with a new identity when the URL changes.
-  public func updateUIViewController(
+  func updateUIViewController(
     _ uiViewController: SFSafariViewController,
     context: Context
   ) {}
@@ -259,6 +259,8 @@ private extension Locale {
   }
 
   static var appleSupportDefaultRegions: [String: String] {
+    // Language-only fallbacks pick one common Apple Support region.
+    // Pass an explicit region, such as pt-PT, when the distinction matters.
     [
       "ar": "ae",
       "cs": "cz",

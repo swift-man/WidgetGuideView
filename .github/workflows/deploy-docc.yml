@@ -17,7 +17,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build DocC
         run: ./GeneratingDocumentationSite
@@ -32,4 +32,3 @@ jobs:
           destination_dir: WidgetGuideView
           keep_files: true
           commit_message: "Deploy WidgetGuideView DocC from ${{ github.repository }}@${{ github.sha }}"
-

@@ -33,10 +33,8 @@ WidgetGuideView(
 ### Showing Guides
 
 - ``WidgetGuideView``
-- ``SafariView``
 
 ### Choosing Guide Content
 
 - ``WidgetGuideKind``
 - ``WidgetGuideDestination``
-
