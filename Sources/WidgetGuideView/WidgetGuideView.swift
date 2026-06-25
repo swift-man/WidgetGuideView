@@ -258,14 +258,35 @@ private extension Locale {
 
   static var appleSupportDefaultRegions: [String: String] {
     [
+      "ar": "ae",
+      "cs": "cz",
+      "da": "dk",
       "de": "de",
+      "el": "gr",
       "en": "us",
       "es": "es",
+      "fi": "fi",
       "fr": "fr",
+      "he": "il",
+      "hi": "in",
+      "hu": "hu",
+      "id": "id",
       "it": "it",
       "ja": "jp",
       "ko": "kr",
+      "ms": "my",
+      "nl": "nl",
+      "no": "no",
+      "pl": "pl",
       "pt": "br",
+      "ro": "ro",
+      "ru": "ru",
+      "sk": "sk",
+      "sv": "se",
+      "th": "th",
+      "tr": "tr",
+      "uk": "ua",
+      "vi": "vn",
       "zh": "cn"
     ]
   }
