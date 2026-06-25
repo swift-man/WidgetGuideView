@@ -258,40 +258,38 @@ private extension Locale {
     return nil
   }
 
-  static var appleSupportDefaultRegions: [String: String] {
-    // Language-only fallbacks pick one common Apple Support region.
-    // Pass an explicit region, such as pt-PT, when the distinction matters.
-    [
-      "ar": "ae",
-      "cs": "cz",
-      "da": "dk",
-      "de": "de",
-      "el": "gr",
-      "en": "us",
-      "es": "es",
-      "fi": "fi",
-      "fr": "fr",
-      "he": "il",
-      "hi": "in",
-      "hu": "hu",
-      "id": "id",
-      "it": "it",
-      "ja": "jp",
-      "ko": "kr",
-      "ms": "my",
-      "nl": "nl",
-      "no": "no",
-      "pl": "pl",
-      "pt": "br",
-      "ro": "ro",
-      "ru": "ru",
-      "sk": "sk",
-      "sv": "se",
-      "th": "th",
-      "tr": "tr",
-      "uk": "ua",
-      "vi": "vn",
-      "zh": "cn"
-    ]
-  }
+  // Language-only fallbacks pick one common Apple Support region.
+  // Pass an explicit region, such as pt-PT, when the distinction matters.
+  static let appleSupportDefaultRegions: [String: String] = [
+    "ar": "ae",
+    "cs": "cz",
+    "da": "dk",
+    "de": "de",
+    "el": "gr",
+    "en": "us",
+    "es": "es",
+    "fi": "fi",
+    "fr": "fr",
+    "he": "il",
+    "hi": "in",
+    "hu": "hu",
+    "id": "id",
+    "it": "it",
+    "ja": "jp",
+    "ko": "kr",
+    "ms": "my",
+    "nl": "nl",
+    "no": "no",
+    "pl": "pl",
+    "pt": "br",
+    "ro": "ro",
+    "ru": "ru",
+    "sk": "sk",
+    "sv": "se",
+    "th": "th",
+    "tr": "tr",
+    "uk": "ua",
+    "vi": "vn",
+    "zh": "cn"
+  ]
 }
