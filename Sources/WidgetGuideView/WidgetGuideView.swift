@@ -98,18 +98,23 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
   private static func makeDeveloperURL(for familyPath: String) -> URL {
     makeURL(
       host: "developer.apple.com",
-      path: "/documentation/widgetkit/widgetfamily/\(familyPath)"
+      path: "/documentation/widgetkit/widgetfamily/\(familyPath)",
+      fallback: fallbackDeveloperDocumentationURL
     )
   }
 
-  private static func makeURL(host: String, path: String) -> URL {
+  private static func makeURL(
+    host: String,
+    path: String,
+    fallback: URL = fallbackUserGuideURL
+  ) -> URL {
     var components = URLComponents()
     components.scheme = "https"
     components.host = host
     components.path = path
 
     guard let url = components.url else {
-      return fallbackUserGuideURL
+      return fallback
     }
 
     return url
@@ -123,6 +128,19 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
 
     guard let url = components.url else {
       preconditionFailure("Invalid built-in WidgetGuideView fallback URL")
+    }
+
+    return url
+  }
+
+  private static var fallbackDeveloperDocumentationURL: URL {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "developer.apple.com"
+    components.path = "/documentation/widgetkit"
+
+    guard let url = components.url else {
+      preconditionFailure("Invalid built-in WidgetGuideView developer fallback URL")
     }
 
     return url
