@@ -1,0 +1,46 @@
+version: 1
+
+review:
+  include:
+    - "Package.swift"
+    - "Package.resolved"
+    - "GeneratingDocumentationSite"
+    - ".github/workflows/**/*.yml"
+    - "Sources/**/*.swift"
+    - "Sources/**/*.docc/**"
+    - "README.md"
+    - "AGENTS.md"
+    - ".reviewbot.yml"
+
+  exclude:
+    # local/editor noise
+    - ".DS_Store"
+    - "**/.DS_Store"
+    - ".idea/**"
+    - ".vscode/**"
+
+    # SwiftPM build/cache output
+    - ".build/**"
+    - ".swiftpm/**"
+
+    # Xcode user/generated output
+    - "DerivedData/**"
+    - "xcuserdata/**"
+    - "**/*.xcuserstate"
+    - "**/*.xcscmblueprint"
+
+    # logs and temporary files
+    - "logs/**"
+    - "**/*.log"
+    - "tmp/**"
+    - "temp/**"
+
+  always_review:
+    - ".reviewbot.yml"
+    - "AGENTS.md"
+    - "Package.swift"
+    - "Package.resolved"
+    - "GeneratingDocumentationSite"
+    - ".github/workflows/**/*.yml"
+    - "Sources/**/*.swift"
+    - "Sources/**/*.docc/**"
