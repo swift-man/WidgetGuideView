@@ -109,10 +109,18 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     components.path = path
 
     guard let url = components.url else {
-      preconditionFailure("Invalid WidgetGuideView URL components: \(host)\(path)")
+      return fallbackUserGuideURL
     }
 
     return url
+  }
+
+  private static var fallbackUserGuideURL: URL {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "support.apple.com"
+    components.path = "/en-us/118610"
+    return components.url ?? URL(fileURLWithPath: "/")
   }
 }
 

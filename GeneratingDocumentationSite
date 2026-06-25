@@ -2,12 +2,15 @@
 
 set -euo pipefail
 
-REPO_ROOT="${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null || pwd -P)}"
 DOCS_OUTPUT_ROOT="${DOCS_OUTPUT_ROOT:-$REPO_ROOT/.build/docc-site}"
 OUTPUT_PATH="${DOCS_OUTPUT_PATH:-$DOCS_OUTPUT_ROOT/WidgetGuideView}"
 HOSTING_BASE_PATH="${HOSTING_BASE_PATH:-${DOCS_HOSTING_BASE_PATH:-WidgetGuideView}}"
 IOS_SIMULATOR_SDK="${IOS_SIMULATOR_SDK:-$(xcrun --sdk iphonesimulator --show-sdk-path)}"
 IOS_SIMULATOR_TARGET="${IOS_SIMULATOR_TARGET:-$(uname -m)-apple-ios13.0-simulator}"
+
+cd "$REPO_ROOT"
 
 case "$OUTPUT_PATH" in
   /*) ;;
@@ -53,5 +56,5 @@ perl -0pi -e '
   s#href="/css/#href="$base/css/#g;
 ' "$OUTPUT_PATH/index.html"
 
-rm -rf ./docs
-rm -rf ./WidgetGuideView.doccarchive
+rm -rf "$REPO_ROOT/docs"
+rm -rf "$REPO_ROOT/WidgetGuideView.doccarchive"
