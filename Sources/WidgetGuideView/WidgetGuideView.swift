@@ -227,14 +227,17 @@ private extension Locale {
   static func normalizedAppleSupportIdentifier(from identifier: String) -> String? {
     let components = NSLocale.components(fromLocaleIdentifier: identifier)
 
-    guard let language = components[NSLocale.Key.languageCode.rawValue]?.lowercased(),
-          !language.isEmpty
+    guard let languageCode = components[NSLocale.Key.languageCode.rawValue]?.lowercased(),
+          !languageCode.isEmpty
     else {
       return nil
     }
 
+    let language = appleSupportLanguageCode(for: languageCode)
+
     if let region = components[NSLocale.Key.countryCode.rawValue]?.lowercased(),
-       isAppleSupportRegionCode(region)
+       isAppleSupportRegionCode(region),
+       supportsAppleSupportLocale(language: language, region: region)
     {
       return "\(language)-\(region)"
     }
@@ -259,9 +262,30 @@ private extension Locale {
   }
 
   static func isAppleSupportRegionCode(_ region: String) -> Bool {
-    region.count == 2 && region.unicodeScalars.allSatisfy {
-      CharacterSet.lowercaseLetters.contains($0)
+    region.count == 2 && region.utf8.allSatisfy {
+      $0 >= 0x61 && $0 <= 0x7A
     }
+  }
+
+  static func appleSupportLanguageCode(for language: String) -> String {
+    switch language {
+    case "nb", "nn":
+      return "no"
+    case "iw":
+      return "he"
+    case "in":
+      return "id"
+    default:
+      return language
+    }
+  }
+
+  static func supportsAppleSupportLocale(language: String, region: String) -> Bool {
+    guard let supportedRegions = appleSupportSupportedRegionsByLanguage[language] else {
+      return false
+    }
+
+    return supportedRegions.contains(region)
   }
 
   // Language-only fallbacks pick one common Apple Support region.
@@ -297,5 +321,46 @@ private extension Locale {
     "uk": "ua",
     "vi": "vn",
     "zh": "cn"
+  ]
+
+  static let appleSupportSupportedRegionsByLanguage: [String: Set<String>] = [
+    "ar": ["ae", "bh", "eg", "jo", "kw", "om", "qa", "sa"],
+    "cs": ["cz"],
+    "da": ["dk"],
+    "de": ["at", "ch", "de", "li", "lu"],
+    "el": ["cy", "gr"],
+    "en": [
+      "ae", "al", "am", "au", "az", "bh", "bn", "bw", "by", "ca", "eg",
+      "gb", "ge", "gu", "gw", "hk", "ie", "il", "in", "is", "jo", "ke",
+      "kg", "kw", "kz", "lb", "lk", "md", "me", "mk", "mn", "mo", "mt",
+      "my", "mz", "ng", "nz", "om", "ph", "qa", "sa", "sg", "tj", "tm",
+      "ug", "us", "uz", "vn", "za"
+    ],
+    "es": ["cl", "co", "es", "mx", "us"],
+    "fi": ["fi"],
+    "fr": [
+      "be", "ca", "cf", "ch", "ci", "cm", "fr", "gn", "gq", "lu", "ma",
+      "mg", "ml", "mu", "ne", "sn", "tn"
+    ],
+    "he": ["il"],
+    "hr": ["hr"],
+    "hu": ["hu"],
+    "id": ["id"],
+    "it": ["it"],
+    "ja": ["jp"],
+    "ko": ["kr"],
+    "nl": ["be", "nl"],
+    "no": ["no"],
+    "pl": ["pl"],
+    "pt": ["br", "pt"],
+    "ro": ["md", "ro"],
+    "ru": ["ru"],
+    "sk": ["sk"],
+    "sv": ["se"],
+    "th": ["th"],
+    "tr": ["tr"],
+    "uk": ["ua"],
+    "vi": ["vn"],
+    "zh": ["cn", "hk", "mo", "tw"]
   ]
 }

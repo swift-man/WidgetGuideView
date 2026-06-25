@@ -7,11 +7,19 @@ final class WidgetGuideKindTests: XCTestCase {
     let cases = [
       ("en_US", "https://support.apple.com/en-us/118610"),
       ("en-US-u-ca-gregory", "https://support.apple.com/en-us/118610"),
+      ("en_GB", "https://support.apple.com/en-gb/118610"),
+      ("en_DE", "https://support.apple.com/en-us/118610"),
       ("ko", "https://support.apple.com/ko-kr/118610"),
+      ("ko_US", "https://support.apple.com/ko-kr/118610"),
+      ("fr_CA", "https://support.apple.com/fr-ca/118610"),
       ("zh-Hant", "https://support.apple.com/zh-tw/118610"),
       ("zh_Hant_TW", "https://support.apple.com/zh-tw/118610"),
+      ("zh_Hant_HK", "https://support.apple.com/zh-hk/118610"),
       ("es-419", "https://support.apple.com/es-es/118610"),
       ("en-001", "https://support.apple.com/en-us/118610"),
+      ("nb_NO", "https://support.apple.com/no-no/118610"),
+      ("iw_IL", "https://support.apple.com/he-il/118610"),
+      ("in_ID", "https://support.apple.com/id-id/118610"),
       ("pt", "https://support.apple.com/pt-br/118610")
     ]
 

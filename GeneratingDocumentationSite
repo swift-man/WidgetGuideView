@@ -10,6 +10,18 @@ HOSTING_BASE_PATH="${HOSTING_BASE_PATH:-${DOCS_HOSTING_BASE_PATH:-WidgetGuideVie
 IOS_SIMULATOR_SDK="${IOS_SIMULATOR_SDK:-$(xcrun --sdk iphonesimulator --show-sdk-path)}"
 IOS_SIMULATOR_TARGET="${IOS_SIMULATOR_TARGET:-$(uname -m)-apple-ios13.0-simulator}"
 
+while [[ "$HOSTING_BASE_PATH" == /* ]]; do
+  HOSTING_BASE_PATH="${HOSTING_BASE_PATH#/}"
+done
+
+while [[ "$HOSTING_BASE_PATH" == */ ]]; do
+  HOSTING_BASE_PATH="${HOSTING_BASE_PATH%/}"
+done
+
+if [[ -z "$HOSTING_BASE_PATH" ]]; then
+  HOSTING_BASE_PATH="WidgetGuideView"
+fi
+
 cd "$REPO_ROOT"
 
 case "$OUTPUT_PATH" in
@@ -54,10 +66,10 @@ swift package \
   --transform-for-static-hosting \
   --hosting-base-path "$HOSTING_BASE_PATH"
 
-HOSTING_BASE_PATH="/${HOSTING_BASE_PATH#/}"
-export HOSTING_BASE_PATH
+STATIC_HOSTING_BASE_PATH="/$HOSTING_BASE_PATH"
+export STATIC_HOSTING_BASE_PATH
 perl -0pi -e '
-  my $base = $ENV{"HOSTING_BASE_PATH"};
+  my $base = $ENV{"STATIC_HOSTING_BASE_PATH"};
   s#href="/favicon\.ico"#href="$base/favicon.ico"#g;
   s#href="/favicon\.svg"#href="$base/favicon.svg"#g;
   s#var baseUrl = "/"#var baseUrl = "$base/"#g;
