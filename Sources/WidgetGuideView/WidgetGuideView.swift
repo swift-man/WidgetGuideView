@@ -225,28 +225,28 @@ private extension Locale {
   }
 
   static func normalizedAppleSupportIdentifier(from identifier: String) -> String? {
-    let components = identifier
-      .replacingOccurrences(of: "_", with: "-")
-      .lowercased()
-      .split(separator: "-")
-      .map(String.init)
+    let components = NSLocale.components(fromLocaleIdentifier: identifier)
 
-    guard let language = components.first, !language.isEmpty else {
+    guard let language = components[NSLocale.Key.languageCode.rawValue]?.lowercased(),
+          !language.isEmpty
+    else {
       return nil
     }
 
-    if let region = components.dropFirst().last(where: { component in
-      component.count == 2 || component.count == 3
-    }) {
+    if let region = components[NSLocale.Key.countryCode.rawValue]?.lowercased(),
+       region.count == 2 || region.count == 3
+    {
       return "\(language)-\(region)"
     }
 
     if language == "zh" {
-      if components.contains("hant") {
+      let script = components[NSLocale.Key.scriptCode.rawValue]?.lowercased()
+
+      if script == "hant" {
         return "zh-tw"
       }
 
-      if components.contains("hans") {
+      if script == "hans" {
         return "zh-cn"
       }
     }
