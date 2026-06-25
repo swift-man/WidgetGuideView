@@ -55,6 +55,3 @@ perl -0pi -e '
   s#src="/js/#src="$base/js/#g;
   s#href="/css/#href="$base/css/#g;
 ' "$OUTPUT_PATH/index.html"
-
-rm -rf "$REPO_ROOT/docs"
-rm -rf "$REPO_ROOT/WidgetGuideView.doccarchive"
