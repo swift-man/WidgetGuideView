@@ -68,18 +68,7 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
 
   /// Apple's WidgetKit developer documentation URL for the associated widget family.
   public var appleDeveloperURL: URL {
-    switch self {
-    case .homeSmall:
-      return Self.makeDeveloperURL(for: "systemsmall")
-    case .homeMedium:
-      return Self.makeDeveloperURL(for: "systemmedium")
-    case .homeLarge:
-      return Self.makeDeveloperURL(for: "systemlarge")
-    case .lockScreenCircular:
-      return Self.makeDeveloperURL(for: "accessorycircular")
-    case .lockScreenRectangular:
-      return Self.makeDeveloperURL(for: "accessoryrectangular")
-    }
+    Self.makeDeveloperURL(for: widgetFamily.lowercased())
   }
 
   /// Returns the guide URL for the requested destination.
@@ -120,7 +109,7 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     return url
   }
 
-  private static var fallbackUserGuideURL: URL {
+  private static let fallbackUserGuideURL: URL = {
     var components = URLComponents()
     components.scheme = "https"
     components.host = "support.apple.com"
@@ -131,9 +120,9 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     }
 
     return url
-  }
+  }()
 
-  private static var fallbackDeveloperDocumentationURL: URL {
+  private static let fallbackDeveloperDocumentationURL: URL = {
     var components = URLComponents()
     components.scheme = "https"
     components.host = "developer.apple.com"
@@ -144,7 +133,7 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     }
 
     return url
-  }
+  }()
 }
 
 /// The Apple documentation destination to open.
