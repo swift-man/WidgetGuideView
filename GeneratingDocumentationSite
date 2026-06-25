@@ -21,7 +21,16 @@ mkdir -p "$DOCS_OUTPUT_ROOT"
 mkdir -p "$(dirname "$OUTPUT_PATH")"
 
 DOCS_OUTPUT_ROOT="$(cd "$DOCS_OUTPUT_ROOT" && pwd -P)"
-OUTPUT_PATH="$(cd "$(dirname "$OUTPUT_PATH")" && pwd -P)/$(basename "$OUTPUT_PATH")"
+OUTPUT_BASENAME="$(basename "$OUTPUT_PATH")"
+
+case "$OUTPUT_BASENAME" in
+  "."|"..")
+    echo "Refusing output path with unsafe basename: $OUTPUT_PATH" >&2
+    exit 1
+    ;;
+esac
+
+OUTPUT_PATH="$(cd "$(dirname "$OUTPUT_PATH")" && pwd -P)/$OUTPUT_BASENAME"
 
 case "$OUTPUT_PATH" in
   "$DOCS_OUTPUT_ROOT"/*) ;;
