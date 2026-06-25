@@ -120,7 +120,12 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     components.scheme = "https"
     components.host = "support.apple.com"
     components.path = "/en-us/118610"
-    return components.url ?? URL(fileURLWithPath: "/")
+
+    guard let url = components.url else {
+      preconditionFailure("Invalid built-in WidgetGuideView fallback URL")
+    }
+
+    return url
   }
 }
 
@@ -238,12 +243,30 @@ private extension Locale {
       return nil
     }
 
-    guard let region = components.dropFirst().last(where: { component in
+    if let region = components.dropFirst().last(where: { component in
       component.count == 2 || component.count == 3
-    }) else {
-      return nil
+    }) {
+      return "\(language)-\(region)"
     }
 
-    return "\(language)-\(region)"
+    if let defaultRegion = appleSupportDefaultRegions[language] {
+      return "\(language)-\(defaultRegion)"
+    }
+
+    return nil
+  }
+
+  static var appleSupportDefaultRegions: [String: String] {
+    [
+      "de": "de",
+      "en": "us",
+      "es": "es",
+      "fr": "fr",
+      "it": "it",
+      "ja": "jp",
+      "ko": "kr",
+      "pt": "br",
+      "zh": "cn"
+    ]
   }
 }
