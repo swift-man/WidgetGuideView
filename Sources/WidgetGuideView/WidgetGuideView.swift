@@ -221,15 +221,7 @@ private extension View {
 
 private extension Locale {
   var appleSupportIdentifier: String {
-    let candidates = [identifier] + Locale.preferredLanguages
-
-    for candidate in candidates {
-      if let identifier = Self.normalizedAppleSupportIdentifier(from: candidate) {
-        return identifier
-      }
-    }
-
-    return "en-us"
+    Self.normalizedAppleSupportIdentifier(from: identifier) ?? "en-us"
   }
 
   static func normalizedAppleSupportIdentifier(from identifier: String) -> String? {
@@ -247,6 +239,16 @@ private extension Locale {
       component.count == 2 || component.count == 3
     }) {
       return "\(language)-\(region)"
+    }
+
+    if language == "zh" {
+      if components.contains("hant") {
+        return "zh-tw"
+      }
+
+      if components.contains("hans") {
+        return "zh-cn"
+      }
     }
 
     if let defaultRegion = appleSupportDefaultRegions[language] {
