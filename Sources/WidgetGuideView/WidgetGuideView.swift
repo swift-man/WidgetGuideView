@@ -60,22 +60,25 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
 
   /// Returns Apple's user-facing widget guide URL for the provided locale.
   public func userGuideURL(locale: Locale = .autoupdatingCurrent) -> URL {
-    URL(string: "https://support.apple.com/\(locale.appleSupportIdentifier)/118610")!
+    Self.makeURL(
+      host: "support.apple.com",
+      path: "/\(locale.appleSupportIdentifier)/118610"
+    )
   }
 
   /// Apple's WidgetKit developer documentation URL for the associated widget family.
   public var appleDeveloperURL: URL {
     switch self {
     case .homeSmall:
-      return URL(string: "https://developer.apple.com/documentation/widgetkit/widgetfamily/systemsmall")!
+      return Self.makeDeveloperURL(for: "systemsmall")
     case .homeMedium:
-      return URL(string: "https://developer.apple.com/documentation/widgetkit/widgetfamily/systemmedium")!
+      return Self.makeDeveloperURL(for: "systemmedium")
     case .homeLarge:
-      return URL(string: "https://developer.apple.com/documentation/widgetkit/widgetfamily/systemlarge")!
+      return Self.makeDeveloperURL(for: "systemlarge")
     case .lockScreenCircular:
-      return URL(string: "https://developer.apple.com/documentation/widgetkit/widgetfamily/accessorycircular")!
+      return Self.makeDeveloperURL(for: "accessorycircular")
     case .lockScreenRectangular:
-      return URL(string: "https://developer.apple.com/documentation/widgetkit/widgetfamily/accessoryrectangular")!
+      return Self.makeDeveloperURL(for: "accessoryrectangular")
     }
   }
 
@@ -90,6 +93,26 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     case .developerDocumentation:
       return appleDeveloperURL
     }
+  }
+
+  private static func makeDeveloperURL(for familyPath: String) -> URL {
+    makeURL(
+      host: "developer.apple.com",
+      path: "/documentation/widgetkit/widgetfamily/\(familyPath)"
+    )
+  }
+
+  private static func makeURL(host: String, path: String) -> URL {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = host
+    components.path = path
+
+    guard let url = components.url else {
+      preconditionFailure("Invalid WidgetGuideView URL components: \(host)\(path)")
+    }
+
+    return url
   }
 }
 
@@ -127,8 +150,13 @@ public struct WidgetGuideView: View {
 
   /// The SwiftUI body for the guide.
   public var body: some View {
-    SafariView(url: kind.url(for: destination, locale: locale))
-      .edgesIgnoringSafeArea(.all)
+    SafariView(url: guideURL)
+      .id(guideURL)
+      .widgetGuideIgnoresSafeArea()
+  }
+
+  private var guideURL: URL {
+    kind.url(for: destination, locale: locale)
   }
 }
 
@@ -157,10 +185,24 @@ public struct SafariView: UIViewControllerRepresentable {
   }
 
   /// Updates the underlying Safari view controller.
+  ///
+  /// `SFSafariViewController` does not expose an API for replacing the loaded URL.
+  /// Recreate the SwiftUI view with a new identity when the URL changes.
   public func updateUIViewController(
     _ uiViewController: SFSafariViewController,
     context: Context
   ) {}
+}
+
+private extension View {
+  @ViewBuilder
+  func widgetGuideIgnoresSafeArea() -> some View {
+    if #available(iOS 14.0, *) {
+      ignoresSafeArea()
+    } else {
+      edgesIgnoringSafeArea(.all)
+    }
+  }
 }
 #endif
 

@@ -2,10 +2,31 @@
 
 set -euo pipefail
 
-OUTPUT_PATH="${DOCS_OUTPUT_PATH:-.build/docc-site/WidgetGuideView}"
+REPO_ROOT="${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)}"
+DOCS_OUTPUT_ROOT="${DOCS_OUTPUT_ROOT:-$REPO_ROOT/.build/docc-site}"
+OUTPUT_PATH="${DOCS_OUTPUT_PATH:-$DOCS_OUTPUT_ROOT/WidgetGuideView}"
 HOSTING_BASE_PATH="${HOSTING_BASE_PATH:-${DOCS_HOSTING_BASE_PATH:-WidgetGuideView}}"
 IOS_SIMULATOR_SDK="${IOS_SIMULATOR_SDK:-$(xcrun --sdk iphonesimulator --show-sdk-path)}"
 IOS_SIMULATOR_TARGET="${IOS_SIMULATOR_TARGET:-$(uname -m)-apple-ios13.0-simulator}"
+
+case "$OUTPUT_PATH" in
+  /*) ;;
+  *) OUTPUT_PATH="$REPO_ROOT/$OUTPUT_PATH" ;;
+esac
+
+mkdir -p "$DOCS_OUTPUT_ROOT"
+mkdir -p "$(dirname "$OUTPUT_PATH")"
+
+DOCS_OUTPUT_ROOT="$(cd "$DOCS_OUTPUT_ROOT" && pwd -P)"
+OUTPUT_PATH="$(cd "$(dirname "$OUTPUT_PATH")" && pwd -P)/$(basename "$OUTPUT_PATH")"
+
+case "$OUTPUT_PATH" in
+  "$DOCS_OUTPUT_ROOT"/*) ;;
+  *)
+    echo "Refusing to delete output path outside $DOCS_OUTPUT_ROOT: $OUTPUT_PATH" >&2
+    exit 1
+    ;;
+esac
 
 rm -rf "$OUTPUT_PATH"
 mkdir -p "$(dirname "$OUTPUT_PATH")"
@@ -34,4 +55,3 @@ perl -0pi -e '
 
 rm -rf ./docs
 rm -rf ./WidgetGuideView.doccarchive
-
