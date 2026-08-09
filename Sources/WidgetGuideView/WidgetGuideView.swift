@@ -1,10 +1,55 @@
 import Foundation
 import SwiftUI
 
-#if canImport(UIKit) && canImport(SafariServices)
-import SafariServices
+#if canImport(UIKit)
 import UIKit
 #endif
+
+#if canImport(SafariServices)
+import SafariServices
+#endif
+
+/// The Apple platform whose user-facing widget guide should be shown.
+public enum WidgetGuidePlatform: Sendable {
+  /// Apple's iPhone widget guide.
+  case iPhone
+
+  /// Apple's iPad widget guide.
+  case iPad
+
+  /// Selects the guide for the current device, defaulting to iPhone off iOS.
+  @MainActor
+  public static var automatic: Self {
+    #if canImport(UIKit)
+    return UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+    #else
+    return .iPhone
+    #endif
+  }
+
+  fileprivate var resolved: ResolvedWidgetGuidePlatform {
+    switch self {
+    case .iPhone:
+      return .iPhone
+    case .iPad:
+      return .iPad
+    }
+  }
+}
+
+private enum ResolvedWidgetGuidePlatform {
+  case iPhone
+  case iPad
+
+  func supportPath(localeIdentifier: String) -> String {
+    switch self {
+    case .iPhone:
+      return "/\(localeIdentifier)/118610"
+    case .iPad:
+      return "/\(localeIdentifier)/guide/ipad/ipadb0de8630/ipados"
+    }
+  }
+}
 
 /// A widget guide that can be opened from the app.
 public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
@@ -58,11 +103,27 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     }
   }
 
-  /// Returns Apple's user-facing widget guide URL for the provided locale.
-  public func userGuideURL(locale: Locale = .autoupdatingCurrent) -> URL {
-    Self.makeURL(
+  /// Returns Apple's user-facing widget guide URL for the provided platform and locale.
+  @MainActor
+  public func userGuideURL(
+    locale: Locale = .autoupdatingCurrent
+  ) -> URL {
+    userGuideURL(platform: .automatic, locale: locale)
+  }
+
+  /// Returns Apple's user-facing widget guide URL for a concrete platform and locale.
+  public func userGuideURL(
+    platform: WidgetGuidePlatform,
+    locale: Locale = .autoupdatingCurrent
+  ) -> URL {
+    let resolvedPlatform = platform.resolved
+
+    return Self.makeURL(
       host: "support.apple.com",
-      path: "/\(locale.appleSupportIdentifier)/118610"
+      path: resolvedPlatform.supportPath(
+        localeIdentifier: locale.appleSupportIdentifier
+      ),
+      fallback: Self.fallbackUserGuideURL(for: resolvedPlatform)
     )
   }
 
@@ -72,13 +133,23 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
   }
 
   /// Returns the guide URL for the requested destination.
+  @MainActor
   public func url(
     for destination: WidgetGuideDestination,
     locale: Locale = .autoupdatingCurrent
   ) -> URL {
+    url(for: destination, platform: .automatic, locale: locale)
+  }
+
+  /// Returns the guide URL for a concrete platform and requested destination.
+  public func url(
+    for destination: WidgetGuideDestination,
+    platform: WidgetGuidePlatform,
+    locale: Locale = .autoupdatingCurrent
+  ) -> URL {
     switch destination {
     case .userGuide:
-      return userGuideURL(locale: locale)
+      return userGuideURL(platform: platform, locale: locale)
     case .developerDocumentation:
       return appleDeveloperURL
     }
@@ -95,7 +166,7 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
   private static func makeURL(
     host: String,
     path: String,
-    fallback: URL = fallbackUserGuideURL
+    fallback: URL
   ) -> URL {
     var components = URLComponents()
     components.scheme = "https"
@@ -109,7 +180,18 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
     return url
   }
 
-  private static let fallbackUserGuideURL: URL = {
+  private static func fallbackUserGuideURL(
+    for platform: ResolvedWidgetGuidePlatform
+  ) -> URL {
+    switch platform {
+    case .iPhone:
+      return fallbackIPhoneUserGuideURL
+    case .iPad:
+      return fallbackIPadUserGuideURL
+    }
+  }
+
+  private static let fallbackIPhoneUserGuideURL: URL = {
     var components = URLComponents()
     components.scheme = "https"
     components.host = "support.apple.com"
@@ -117,6 +199,19 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
 
     guard let url = components.url else {
       preconditionFailure("Invalid built-in WidgetGuideView fallback URL")
+    }
+
+    return url
+  }()
+
+  private static let fallbackIPadUserGuideURL: URL = {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "support.apple.com"
+    components.path = "/en-us/guide/ipad/ipadb0de8630/ipados"
+
+    guard let url = components.url else {
+      preconditionFailure("Invalid built-in WidgetGuideView iPad fallback URL")
     }
 
     return url
@@ -154,17 +249,37 @@ public struct WidgetGuideView: View {
   /// The documentation destination to open.
   public let destination: WidgetGuideDestination
 
+  /// The platform used when selecting Apple's user-facing guide.
+  public let platform: WidgetGuidePlatform
+
   /// The locale used when building Apple support URLs.
   public let locale: Locale
 
   /// Creates a widget guide view.
+  @MainActor
   public init(
     kind: WidgetGuideKind,
     destination: WidgetGuideDestination = .userGuide,
     locale: Locale = .autoupdatingCurrent
   ) {
+    self.init(
+      kind: kind,
+      destination: destination,
+      platform: .automatic,
+      locale: locale
+    )
+  }
+
+  /// Creates a widget guide view for a concrete platform.
+  public init(
+    kind: WidgetGuideKind,
+    destination: WidgetGuideDestination = .userGuide,
+    platform: WidgetGuidePlatform,
+    locale: Locale = .autoupdatingCurrent
+  ) {
     self.kind = kind
     self.destination = destination
+    self.platform = platform
     self.locale = locale
   }
 
@@ -176,7 +291,7 @@ public struct WidgetGuideView: View {
   }
 
   private var guideURL: URL {
-    kind.url(for: destination, locale: locale)
+    kind.url(for: destination, platform: platform, locale: locale)
   }
 }
 
