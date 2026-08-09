@@ -2,6 +2,10 @@ import Foundation
 import XCTest
 @testable import WidgetGuideView
 
+#if canImport(UIKit)
+import UIKit
+#endif
+
 final class WidgetGuideKindTests: XCTestCase {
   func testUserGuideURLNormalizesLocaleIdentifiers() {
     let cases = [
@@ -29,11 +33,51 @@ final class WidgetGuideKindTests: XCTestCase {
 
     for (identifier, expectedURL) in cases {
       let url = WidgetGuideKind.homeSmall.userGuideURL(
+        platform: .iPhone,
         locale: Locale(identifier: identifier)
       )
 
       XCTAssertEqual(url.absoluteString, expectedURL, identifier)
     }
+  }
+
+  func testUserGuideURLMatchesSelectedPlatformForEveryWidgetKind() {
+    let locale = Locale(identifier: "ko_KR")
+
+    for kind in WidgetGuideKind.allCases {
+      XCTAssertEqual(
+        kind.userGuideURL(platform: .iPhone, locale: locale).absoluteString,
+        "https://support.apple.com/ko-kr/118610"
+      )
+      XCTAssertEqual(
+        kind.userGuideURL(platform: .iPad, locale: locale).absoluteString,
+        "https://support.apple.com/ko-kr/guide/ipad/ipadb0de8630/ipados"
+      )
+      XCTAssertEqual(
+        kind.url(
+          for: .userGuide,
+          platform: .iPad,
+          locale: locale
+        ).absoluteString,
+        "https://support.apple.com/ko-kr/guide/ipad/ipadb0de8630/ipados"
+      )
+    }
+  }
+
+  func testAutomaticUserGuideURLMatchesCurrentDevice() {
+    #if canImport(UIKit)
+    let expectedURL = UIDevice.current.userInterfaceIdiom == .pad
+      ? "https://support.apple.com/en-us/guide/ipad/ipadb0de8630/ipados"
+      : "https://support.apple.com/en-us/118610"
+    #else
+    let expectedURL = "https://support.apple.com/en-us/118610"
+    #endif
+
+    let url = WidgetGuideKind.homeSmall.userGuideURL(
+      locale: Locale(identifier: "en_US")
+    )
+
+    XCTAssertEqual(url.absoluteString, expectedURL)
   }
 
   func testWidgetFamiliesMatchDeveloperDocumentationURLs() {
