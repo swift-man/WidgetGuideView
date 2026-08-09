@@ -3,6 +3,7 @@
 set -euo pipefail
 
 SUPPORT_ARTICLE_ID="${SUPPORT_ARTICLE_ID:-118610}"
+IPAD_GUIDE_PATH="${IPAD_GUIDE_PATH:-guide/ipad/ipadb0de8630/ipados}"
 CURL_CONNECT_TIMEOUT="${CURL_CONNECT_TIMEOUT:-10}"
 CURL_MAX_TIME="${CURL_MAX_TIME:-30}"
 
@@ -58,13 +59,17 @@ support_locales=(
 
 checked_count=0
 failure_count=0
+verification_challenge_count=0
+canonical_redirect_count=0
 
 validate_url() {
   local url="$1"
   local expected_effective_url="${2:-}"
+  local expected_resource_marker="${3:-}"
   local response
   local http_code
   local effective_url
+  local expected_verification_url
 
   checked_count=$((checked_count + 1))
 
@@ -89,10 +94,28 @@ validate_url() {
   http_code="${response%% *}"
   effective_url="${response#* }"
 
+  expected_verification_url="https://support.apple.com/verify-human/verify.html?next=${url#https://support.apple.com}"
+
+  if [[ "$effective_url" == "$expected_verification_url" ]]; then
+    echo "::warning::Apple requested human verification for $url"
+    verification_challenge_count=$((verification_challenge_count + 1))
+    return
+  fi
+
   if [[ ! "$http_code" =~ ^[23][0-9][0-9]$ ]]; then
     echo "::error::Unexpected HTTP status $http_code for $url"
     failure_count=$((failure_count + 1))
     return
+  fi
+
+  if [[ -n "$expected_resource_marker" &&
+        "$effective_url" == https://support.apple.com/* &&
+        "$effective_url" == *"$expected_resource_marker" ]]; then
+    if [[ "$effective_url" != "$url" ]]; then
+      echo "OK $http_code $url -> $effective_url"
+      canonical_redirect_count=$((canonical_redirect_count + 1))
+      return
+    fi
   fi
 
   if [[ -n "$expected_effective_url" && "$effective_url" != "$expected_effective_url" ]]; then
@@ -111,8 +134,11 @@ for url in "${developer_urls[@]}"; do
 done
 
 for locale in "${support_locales[@]}"; do
-  url="https://support.apple.com/$locale/$SUPPORT_ARTICLE_ID"
-  validate_url "$url" "$url"
+  iphone_url="https://support.apple.com/$locale/$SUPPORT_ARTICLE_ID"
+  ipad_url="https://support.apple.com/$locale/$IPAD_GUIDE_PATH"
+
+  validate_url "$iphone_url" "$iphone_url"
+  validate_url "$ipad_url" "$ipad_url" "ipadb0de8630/ipados"
 done
 
 if (( failure_count > 0 )); then
@@ -120,4 +146,14 @@ if (( failure_count > 0 )); then
   exit 1
 fi
 
-echo "Validated $checked_count official URLs."
+validated_count=$((checked_count - verification_challenge_count))
+
+if (( verification_challenge_count > 0 )); then
+  echo "::warning::$verification_challenge_count of $checked_count official URLs were blocked by Apple human verification"
+fi
+
+if (( canonical_redirect_count > 0 )); then
+  echo "$canonical_redirect_count iPad guide URLs resolved through an Apple canonical redirect."
+fi
+
+echo "Validated $validated_count of $checked_count official URLs."
