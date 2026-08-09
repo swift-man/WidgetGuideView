@@ -11,23 +11,24 @@ import SafariServices
 
 /// The Apple platform whose user-facing widget guide should be shown.
 public enum WidgetGuidePlatform: Sendable {
-  /// Selects the guide for the current device, defaulting to iPhone off iOS.
-  case automatic
-
   /// Apple's iPhone widget guide.
   case iPhone
 
   /// Apple's iPad widget guide.
   case iPad
 
+  /// Selects the guide for the current device, defaulting to iPhone off iOS.
+  @MainActor
+  public static var automatic: Self {
+    #if canImport(UIKit)
+    return UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
+    #else
+    return .iPhone
+    #endif
+  }
+
   fileprivate var resolved: ResolvedWidgetGuidePlatform {
     switch self {
-    case .automatic:
-      #if canImport(UIKit)
-      return UIDevice.current.userInterfaceIdiom == .pad ? .iPad : .iPhone
-      #else
-      return .iPhone
-      #endif
     case .iPhone:
       return .iPhone
     case .iPad:
@@ -103,8 +104,16 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
   }
 
   /// Returns Apple's user-facing widget guide URL for the provided platform and locale.
+  @MainActor
   public func userGuideURL(
-    platform: WidgetGuidePlatform = .automatic,
+    locale: Locale = .autoupdatingCurrent
+  ) -> URL {
+    userGuideURL(platform: .automatic, locale: locale)
+  }
+
+  /// Returns Apple's user-facing widget guide URL for a concrete platform and locale.
+  public func userGuideURL(
+    platform: WidgetGuidePlatform,
     locale: Locale = .autoupdatingCurrent
   ) -> URL {
     let resolvedPlatform = platform.resolved
@@ -124,9 +133,18 @@ public enum WidgetGuideKind: CaseIterable, Identifiable, Sendable {
   }
 
   /// Returns the guide URL for the requested destination.
+  @MainActor
   public func url(
     for destination: WidgetGuideDestination,
-    platform: WidgetGuidePlatform = .automatic,
+    locale: Locale = .autoupdatingCurrent
+  ) -> URL {
+    url(for: destination, platform: .automatic, locale: locale)
+  }
+
+  /// Returns the guide URL for a concrete platform and requested destination.
+  public func url(
+    for destination: WidgetGuideDestination,
+    platform: WidgetGuidePlatform,
     locale: Locale = .autoupdatingCurrent
   ) -> URL {
     switch destination {
@@ -238,10 +256,25 @@ public struct WidgetGuideView: View {
   public let locale: Locale
 
   /// Creates a widget guide view.
+  @MainActor
   public init(
     kind: WidgetGuideKind,
     destination: WidgetGuideDestination = .userGuide,
-    platform: WidgetGuidePlatform = .automatic,
+    locale: Locale = .autoupdatingCurrent
+  ) {
+    self.init(
+      kind: kind,
+      destination: destination,
+      platform: .automatic,
+      locale: locale
+    )
+  }
+
+  /// Creates a widget guide view for a concrete platform.
+  public init(
+    kind: WidgetGuideKind,
+    destination: WidgetGuideDestination = .userGuide,
+    platform: WidgetGuidePlatform,
     locale: Locale = .autoupdatingCurrent
   ) {
     self.kind = kind

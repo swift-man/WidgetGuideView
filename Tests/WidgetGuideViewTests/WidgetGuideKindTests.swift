@@ -64,6 +64,7 @@ final class WidgetGuideKindTests: XCTestCase {
     }
   }
 
+  @MainActor
   func testAutomaticUserGuideURLMatchesCurrentDevice() {
     #if canImport(UIKit)
     let expectedURL = UIDevice.current.userInterfaceIdiom == .pad
@@ -113,7 +114,10 @@ final class WidgetGuideKindTests: XCTestCase {
       XCTAssertEqual(kind.widgetFamily, family)
       XCTAssertEqual(kind.appleDeveloperURL.absoluteString, developerURL)
       XCTAssertEqual(
-        kind.url(for: .developerDocumentation).absoluteString,
+        kind.url(
+          for: .developerDocumentation,
+          platform: .iPhone
+        ).absoluteString,
         developerURL
       )
     }
